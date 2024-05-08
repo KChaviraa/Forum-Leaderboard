@@ -30,7 +30,12 @@ const forumCategory = (id) => {
     selectedCategory.id = 1;
   }
   const url = `${forumCategoryUrl}${selectedCategory.className}/${id}`;
+  const linkText = selectedCategory.category;
+  const linkClass = `category ${selectedCategory.className}`;
 
+  return `<a href="${url}" class="${linkClass}" target="_blank">
+    ${linkText}
+  </a>`;
 };
 
 const timeAgo = (time) => {
@@ -65,6 +70,21 @@ const viewCount = (views) => {
   return views;
 };
 
+const avatars = (posters, users) => {
+  return posters
+    .map((poster) => {
+      const user = users.find((user) => user.id === poster.user_id);
+      if (user) {
+        const avatar = user.avatar_template.replace(/{size}/, 30);
+        const userAvatarUrl = avatar.startsWith("/user_avatar/")
+          ? avatarUrl.concat(avatar)
+          : avatar;
+        return `<img src="${userAvatarUrl}" alt="${user.name}" />`;
+      }
+    })
+    .join("");
+};
+
 const fetchData = async () => {
   try {
     const res = await fetch(forumLatest);
@@ -88,19 +108,27 @@ const showLatestPosts = (data) => {
       views,
       posts_count,
       slug,
-      posters,_id,
+      posters,
+      category_id,
       bumped_at,
     } = item;
 
     return `
     <tr>
       <td>
-        <p class="post-title">${title}</p>
+        <a class="post-title" target= "_blank" href = "${forumTopicUrl}${slug}/${id}" >${title}</a>
+
+        ${forumCategory(category_id)}
       </td>
-      <td></td>
+      <td>
+        <div class="avatar-container">
+          ${avatars(posters, users)}
+        </div>
+      </td>
       <td>${posts_count - 1}</td>
       <td>${viewCount(views)}</td>
       <td>${timeAgo(bumped_at)}</td>
     </tr>`;
   }).join("");
 };
+
